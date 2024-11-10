@@ -44,7 +44,13 @@ class GenericData():
         self.name, self._raw = name, []
         enc = GenericData._def_encoding
         self.encoding = enc if encoding is None else encoding
-        self._comment = ""
+        self._msg, self._comment = "", ""
+
+    def clear_msg(self):
+        self._msg = ""
+
+    def message(self):
+        return self._msg
 
     def dump_json(self, data=None, asort=True) -> str:
         ind = GenericData._indent

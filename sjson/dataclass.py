@@ -1,4 +1,4 @@
-# dataclass.py  (c)2022, 2023  Henrique Moreira
+# dataclass.py  (c)2024  Henrique Moreira
 
 """ DataClass - serializing/ deserializing json
 """
@@ -7,13 +7,6 @@
 
 import re
 import sjson.common
-
-def main_test():
-    lst = [sjson.common.A_SAMPLE]
-    new = DataClass(lst, "Tst")
-    print("main_test():", new)
-    print()
-    print(new._skel)
 
 class DataClass(sjson.common.GenericData):
     """ Deserialized data from JSON.
@@ -29,6 +22,10 @@ class DataClass(sjson.common.GenericData):
         astr = self.dump_json(asort=True)
         return astr
 
+    def get_skel(self) -> dict:
+        assert self._skel, self.name
+        return self._skel
+
     def _reload_data(self, data, kind="i"):
         """ Load or reload data from list.
         """
@@ -38,7 +35,9 @@ class DataClass(sjson.common.GenericData):
         if kind == "e":	# edit
             return True
         if kind == "i":
-            is_ok = self._init_opt(data[-1] if data else {}) == ""
+            msg = self._init_opt(data[-1] if data else {})
+            self._msg = msg
+            is_ok = msg == ""
         else:
             assert False, f"Wrong kind: {repr(kind)}"
         return is_ok
@@ -49,12 +48,17 @@ class DataClass(sjson.common.GenericData):
         """
         if not item:
             return ""
-        skel = {}
-        for key in sorted(key):
-            low = clean_key(key)
-            if key in skel:
+        skel = {
+            "low": {},
+            "field2low": {},
+        }
+        self._skel = skel
+        for key in sorted(item):
+            low = clean_key(key).lower()
+            if low in skel["low"]:
                 return f"Dup key={key}, as {repr(low)}"
-            skel[key] = low
+            skel["low"][low] = key
+            skel["field2low"][key] = low
         self._skel = skel
         return ""
 
@@ -69,4 +73,3 @@ def clean_key(key):
 # Main script
 if __name__ == "__main__":
     print("Please import me!")
-    main_test()
